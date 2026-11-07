@@ -1,0 +1,30 @@
+services:
+  # S3-compatible storage (variant A-2)
+  s3:
+    image: rustfs/rustfs:1.0.0
+    environment:
+      # training keys, not real AWS keys
+      RUSTFS_ACCESS_KEY: lab4user
+      RUSTFS_SECRET_KEY: lab4password
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # web console: http://127.0.0.1:9001
+    volumes:
+      # storage data survives recreating the container
+      - s3-data:/data
+
+  redis-primary:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  redis-replica:
+    image: redis:7
+    # a copy of the primary
+    command: ["redis-server", "--replicaof", "redis-primary", "6379"]
+    ports:
+      - "6380:6379"
+
+volumes:
+  s3-data:
